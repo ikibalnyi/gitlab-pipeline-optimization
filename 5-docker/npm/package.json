@@ -1,0 +1,244 @@
+{
+  "name": "amazing-app",
+  "version": "3.3.4333333333",
+  "description": "Amazing app description",
+  "main": "index.js",
+  "license": "ISC",
+  "scripts": {
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@material-ui/core": "4.9.11",
+    "@material-ui/icons": "4.9.1",
+    "@material-ui/styles": "4.9.10",
+    "@next/bundle-analyzer": "^9.0.5",
+    "@popperjs/core": "^2.2.0",
+    "@react-google-maps/api": "^1.7.12",
+    "@zeit/next-css": "^1.0.1",
+    "apollo-cache-inmemory": "^1.6.5",
+    "apollo-client": "^2.6.4",
+    "apollo-link-context": "^1.0.18",
+    "apollo-link-error": "^1.1.11",
+    "apollo-link-http": "^1.5.15",
+    "apollo-upload-client": "^13.0.0",
+    "axios": "^0.19.0",
+    "babel-plugin-macros": "^2.6.1",
+    "chart.js": "^2.8.0",
+    "contentful": "^7.11.4",
+    "cookie-parser": "^1.4.4",
+    "date-fns": "^2.3.0",
+    "date-fns-tz": "^1.0.7",
+    "debounce": "^1.2.0",
+    "dotenv": "^8.2.0",
+    "dotenv-expand": "^5.1.0",
+    "emoji-mart": "^2.11.2",
+    "express": "^4.17.1",
+    "faker": "^4.1.0",
+    "file-saver": "^2.0.2",
+    "google-maps": "^3.3.0",
+    "graphql": "^14.4.2",
+    "graphql-tag": "^2.10.1",
+    "hoist-non-react-statics": "^3.3.1",
+    "http-proxy-middleware": "^0.19.1",
+    "isomorphic-fetch": "^2.2.1",
+    "js-cookie": "^2.2.0",
+    "lodash": "^4.17.15",
+    "lottie-web": "^5.6.0",
+    "mobx": "4.8.0",
+    "mobx-react": "6.1.1",
+    "mobx-react-lite": "^1.4.1",
+    "next": "^9.2.1",
+    "next-compose-plugins": "^2.2.0",
+    "next-routes": "^1.4.2",
+    "pino": "^5.13.1",
+    "pino-pretty": "^3.2.0",
+    "polished": "^3.4.2",
+    "qs": "^6.8.0",
+    "react": "^16.12.0",
+    "react-apollo": "^3.1.3",
+    "react-dom": "^16.12.0",
+    "react-pdf": "^4.1.0",
+    "react-popper": "^2.0.0",
+    "react-slick": "^0.25.2",
+    "stickybits": "^3.6.7",
+    "stream-chat-react": "^0.8.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.4",
+    "@babel/plugin-proposal-class-properties": "^7.5.0",
+    "@babel/plugin-proposal-decorators": "^7.4.4",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.4.4",
+    "@babel/plugin-proposal-numeric-separator": "^7.7.4",
+    "@babel/plugin-proposal-optional-chaining": "^7.6.0",
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "@graphql-codegen/cli": "^1.9.1",
+    "@graphql-codegen/fragment-matcher": "^1.9.1",
+    "@graphql-codegen/introspection": "^1.9.1",
+    "@graphql-codegen/typescript": "^1.9.1",
+    "@graphql-codegen/typescript-operations": "^1.9.1",
+    "@graphql-codegen/typescript-react-apollo": "^1.9.1",
+    "@storybook/addon-actions": "^5.1.11",
+    "@storybook/addon-info": "^5.1.11",
+    "@storybook/addon-knobs": "^5.1.11",
+    "@storybook/react": "^5.1.11",
+    "@testing-library/jest-dom": "^4.0.0",
+    "@testing-library/react": "^8.0.5",
+    "@types/apollo-upload-client": "^8.1.3",
+    "@types/chart.js": "^2.8.7",
+    "@types/cookie-parser": "^1.4.1",
+    "@types/debounce": "^1.2.0",
+    "@types/emoji-mart": "^2.11.3",
+    "@types/express": "^4.17.0",
+    "@types/faker": "^4.1.5",
+    "@types/file-saver": "^2.0.1",
+    "@types/google-maps": "^3.2.1",
+    "@types/googlemaps": "^3.38.0",
+    "@types/graphql": "^14.2.2",
+    "@types/hoist-non-react-statics": "^3.3.1",
+    "@types/http-proxy-middleware": "^0.19.2",
+    "@types/jest": "^24.0.15",
+    "@types/js-cookie": "^2.2.2",
+    "@types/lodash": "^4.14.149",
+    "@types/next": "^8.0.6",
+    "@types/node": "^12.6.6",
+    "@types/pino": "^5.8.8",
+    "@types/qs": "^6.5.3",
+    "@types/react": "^16.8.23",
+    "@types/react-dom": "^16.8.4",
+    "@types/react-pdf": "^4.0.3",
+    "@types/react-slick": "^0.23.4",
+    "@types/react-test-renderer": "^16.8.3",
+    "@types/storybook__react": "^4.0.2",
+    "@typescript-eslint/eslint-plugin": "^2.8.0",
+    "@typescript-eslint/parser": "^2.8.0",
+    "awesome-typescript-loader": "^5.2.1",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-module-resolver": "^3.2.0",
+    "chalk": "^2.4.2",
+    "circular-dependency-plugin": "^5.0.2",
+    "commitizen": "^4.0.3",
+    "cz-conventional-changelog": "^3.0.2",
+    "eslint": "6.6.0",
+    "eslint-config-airbnb": "18.0.1",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jest": "^23.0.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-react": "^7.14.3",
+    "eslint-plugin-react-hooks": "^2.3.0",
+    "file-loader": "^4.2.0",
+    "husky": "^3.0.0",
+    "jest": "^24.8.0",
+    "jest-canvas-mock": "^2.1.2",
+    "jest-serializer-html": "^7.0.0",
+    "lint-staged": "^9.2.0",
+    "nodemon": "^1.19.1",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^1.19.1",
+    "react-docgen-typescript-loader": "^3.2.0",
+    "react-hooks-testing-library": "^0.6.0",
+    "react-test-renderer": "^16.8.6",
+    "ts-jest": "^24.0.2",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.7.2",
+    "yargs": "^13.3.0"
+  },
+  "resolutions": {
+    "typescript": "3.7.2"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "header-max-length": [
+        2,
+        "always",
+        88
+      ],
+      "scope-case": [
+        0
+      ]
+    }
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn pre-push"
+    }
+  },
+  "lint-staged": {
+    "./{src,pages}/**/*.{ts,tsx,js,json}": [
+      "yarn elint",
+      "git add"
+    ]
+  },
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.test.json"
+      }
+    },
+    "roots": [
+      "<rootDir>/pages",
+      "<rootDir>/src"
+    ],
+    "transform": {
+      "^.+\\.(tsx?|js)$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
+    ],
+    "transformIgnorePatterns": [
+      "<rootDir>/node_modules",
+      "<rootDir>/.next",
+      "<rootDir>/dist"
+    ],
+    "snapshotSerializers": [
+      "jest-serializer-html"
+    ],
+    "setupFiles": [
+      "./testSetup.tsx",
+      "jest-canvas-mock"
+    ],
+    "moduleNameMapper": {
+      "^~/(.*)$": "<rootDir>/$1",
+      "^@pages$": "<rootDir>/pages/index",
+      "^@pages/(.*)$": "<rootDir>/pages/$1",
+      "^@api/(.*)$": "<rootDir>/src/api/$1",
+      "^@components$": "<rootDir>/src/components/index",
+      "^@components/(.*)$": "<rootDir>/src/components/$1",
+      "^@containers$": "<rootDir>/src/containers/index",
+      "^@containers/(.*)$": "<rootDir>/src/containers/$1",
+      "^@lib$": "<rootDir>/src/lib/index",
+      "^@lib/(.*)$": "<rootDir>/src/lib/$1",
+      "^@stores$": "<rootDir>/src/stores/index",
+      "^@stores/(.*)$": "<rootDir>/src/stores/$1",
+      "^@static/(.*)$": "<rootDir>/static/$1",
+      "^@tests-utils": "<rootDir>/src/tests-utils/index",
+      "^@tests-utils/(.*)$": "<rootDir>/src/tests-utils/$1",
+      "^@graphql/(.*)$": "<rootDir>/generated/$1",
+      "^@routes$": "<rootDir>/src/routes",
+      "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
+    }
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,94 @@
+variables:
+  APPNAME:  public-mcql
+  KUBE_NAMESPACE: develop
+  BUILD_ENV: develop
+  DOCKER_DRIVER: overlay
+
+stages:
+  - build
+  - deploy
+  - test
+  - notification
+
+build:
+  image: git.mcmakler.com:4567/mcmakler-public/docker-images/mcmakler-node-build:current-alpine
+  stage: build
+  script:
+    - entrypoint.sh
+    - yarn install
+    - yarn build
+    - yarn test
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
+    # push to registry
+    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID
+
+deploy_dev:
+  stage: deploy
+  variables:
+    KUBE_NAMESPACE: develop
+    BUILD_ENV: develop
+    APPLINK: public_mcql
+  except:
+    - master
+  script:
+    - entrypoint.sh
+    - env
+    - j2 env.yml.j2 > env.yml
+    - cat env.yml
+    - j2 global.yml.j2 > global.yml
+    - j2 -f yaml kube/deployment.yaml.j2  global.yml > kube/deployment.yaml
+    - cat kube/deployment.yaml
+    - j2 -f yaml kube/service.yaml.j2  global.yml > kube/service.yaml
+    - cat kube/service.yaml
+    - kubectl cluster-info
+    - kubectl apply -f kube/service.yaml
+    - kubectl apply -f kube/deployment.yaml
+    - update-namespece.sh
+    - echo "try to use https://$APPNAME-$CI_BRANCH.mcmakler.com"
+
+deploy_prod:
+  stage: deploy
+  variables:
+    KUBE_NAMESPACE: production
+    BUILD_ENV: production
+    APPLINK: public_mcql
+  only:
+    - master
+  tags:
+    - production
+  script:
+    - entrypoint.sh
+    - j2 global.yml.j2 > global.yml
+    - j2 -f yaml kube/deployment.yaml.j2  global.yml > kube/deployment.yaml
+    - j2 -f yaml kube/service.yaml.j2  global.yml > kube/service.yaml
+    - kubectl apply -f kube/service.yaml
+    - kubectl apply -f kube/deployment.yaml
+    - update-namespece.sh
+    - echo "Build and deploy successful!!!"
+
+notificastion_on_failure:
+  stage: notification
+  variables:
+    KUBE_NAMESPACE: production
+    BUILD_ENV: production
+  script:
+    - notification.py FAILED
+  when: on_failure
+  tags:
+    - develop
+  only:
+    - master
+
+
+notificastion_on_success:
+  stage: notification
+  variables:
+    KUBE_NAMESPACE: production
+    BUILD_ENV: production
+  script:
+    - notification.py PASSED
+  when: on_success
+  tags:
+    - develop
+  only:
+    - master

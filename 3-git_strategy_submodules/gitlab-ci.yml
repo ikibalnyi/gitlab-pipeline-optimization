@@ -1,0 +1,48 @@
+# Reference GIT_STRATEGY: https://docs.gitlab.com/ee/ci/yaml/#git-strategy
+# Reference GIT_SUBMODULE_STRATEGY: https://docs.gitlab.com/ee/ci/yaml/#git-submodule-strategy
+
+variables:
+  GIT_STRATEGY: none | fetch | clone
+  GIT_SUBMODULE_STRATEGY: none | normal | recursive
+
+# git strategy none
+
+# if your job can operate only on artifacts
+deploy:
+  image: docker
+  artifacts:
+    paths:
+      - dist
+      - Dockerfile
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker build -t portal:latest .
+    - docker push -t portal:latest
+
+# when you don't need codebase at all
+notify:
+  image: notifications
+  stage: notifications
+  cache: {}
+  dependencies: []
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - notification.py PASSED
+
+# git submodule strategy
+
+.git_submodule_normal:
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
+  before_script:
+    - git submodule sync
+    - git submodule update --init
+
+.git_submodule_recursive:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - git submodule sync --recursive
+    - git submodule update --init --recursive

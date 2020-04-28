@@ -1,0 +1,85 @@
+# Reference: https://docs.gitlab.com/ee/ci/yaml/#cache
+# Some best practices from gitlab: https://docs.gitlab.com/ee/ci/caching/index.html
+
+stages:
+  - install
+  - build
+  - deploy
+  - notify
+
+# global cache
+cache:
+  paths:
+    - node_modules/
+
+# cache per branch
+.cache: &npm_cache
+  key: $CI_COMMIT_REF_SLUG
+  paths:
+    - node_modules/
+  policy: pull
+
+# cache per files
+.cache_files: &npm_cache_files
+  key:
+    files:
+      - yarn.lock
+  paths:
+    - node_modules/
+
+# npm usage
+install_node:
+  image: node
+  script: yarn
+  cache: *npm_cache
+  only: # run job only when yarn.lock is changed
+    changes:
+      - yarn.lock
+
+build_node:
+  image: node
+  script: yarn build
+  cache:
+    <<: *npm_cache
+    policy: pull
+  artifacts:
+    paths:
+      - dist
+    expire_in: 1 hr
+
+# go cache example
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    paths:
+      - .go/pkg/mod/
+
+test_go:
+  image: golang:1.17.3
+  extends: .go-cache
+  script:
+    - go test ./... -v -short
+
+build_go:
+  image: golang:1.17.3
+  extends: .go-cache
+  script:
+    - go build
+    - docker build
+    - docker push
+
+# disable cache and artifacts
+deploy:
+  image: docker
+  stage: deploy
+  script: echo "Succsully deployed!"
+  cache: {}
+
+notify:
+  stage: notify
+  script: echo "Notification!"
+  cache: {} # disable cache
+  dependencies: [] # disable artifacts

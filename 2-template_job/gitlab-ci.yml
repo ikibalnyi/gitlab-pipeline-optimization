@@ -1,0 +1,65 @@
+# Reference anchors: https://docs.gitlab.com/ee/ci/yaml/#anchors
+# Reference extends: https://docs.gitlab.com/ee/ci/yaml/#extends
+
+# template job with anchors
+
+.cache: &cache
+  key: $CI_COMMIT_REF_SLUG
+  paths:
+    - node_modules/
+  policy: pull
+
+.postgres_services:
+  services: &postgres_definition
+    - postgres
+    - ruby
+
+usage1:
+  cache: *cache
+  services: *postgres_definition
+
+usage2:
+  cache:
+    <<: *cache
+    policy: pull-push
+  services: *postgres_definition
+
+# template job extend
+
+.deploy_base:
+  image: docker
+  variables:
+    DEPLOY_KEY: 1234
+  before_script:
+    - docker login -u $USER -p $PASSWORD
+  script:
+    - deploy -n $DEPLOY_NAMESPACE -k $DEPLOY_KEY my-app
+
+deploy dev:
+  extends: .deploy_base
+  stage: deploy
+  variables:
+    DEPLOY_NAMESPACE: develop
+
+deploy prod:
+  extends: .deploy_base
+  stage: deploy
+  script:
+    - test
+    - deploy -n prod -k $DEPLOY_KEY my-app
+
+# anchor scripts
+
+.predeploy: &predeploy_script
+  - echo "Prepare things for deployment"
+
+.deploy: &deploy_script
+  - kubectl apply -f kube/deployment.yaml
+  - kubectl apply -f kube/service.yaml
+
+job_name:
+  before_script:
+    - *predeploy_script
+  script:
+    - *deploy_script
+    - echo "Successfully deployed!"

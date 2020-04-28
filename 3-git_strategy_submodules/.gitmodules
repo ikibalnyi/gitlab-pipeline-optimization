@@ -1,0 +1,15 @@
+[submodule "mcm-api"]
+	path = proto/mcm-api
+	url = ../../proto/mcm-api.git
+
+[submodule "proto/mcm-assets-service-proto"]
+	path = proto/mcm-assets-service-proto
+	url = ../../go/mcm-assets-service-proto.git
+
+[submodule "mcm-datawarehouse-proto"]
+	path = proto/mcm-datawarehouse-proto
+	url = ../../go/mcm-datawarehouse-proto.git
+
+[submodule "mcm-finance-user-service-proto"]
+	path = proto/mcm-finance-user-service-proto
+	url = ../../go/mcm-finance-user-service-proto.git

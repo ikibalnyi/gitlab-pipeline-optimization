@@ -1,0 +1,6 @@
+generated
+proto
+src
+kube
+node_modules
+.git
