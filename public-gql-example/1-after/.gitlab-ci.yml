@@ -1,0 +1,181 @@
+variables:
+  APPNAME: public-mcql
+  GIT_STRATEGY: fetch
+  CI_BRANCH: $CI_COMMIT_REF_SLUG
+  DOCKER_DRIVER: overlay2
+  DOCKER_REPO: git.mcmakler.com:4567/mcmakler-public/docker-images
+
+stages:
+  - install
+  - build
+  - deploy
+  - post_deploy
+
+# Install
+
+install:
+  image: node:lts
+  stage: install
+  cache: &npm_cache
+    key:
+      files:
+        - yarn.lock
+    paths:
+      - node_modules/
+  script:
+    - echo NODE_VERSION=`node -v`
+    - yarn
+  only:
+    changes:
+      - yarn.lock
+
+# Build
+
+build-publish:
+  image: $DOCKER_REPO/mcm-node
+  stage: build
+  cache:
+    <<: *npm_cache
+    policy: pull
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    - export VERBOSE=1
+    - export DEBUG=1
+    - yarn gen:ci
+    - yarn build
+    # Docker build and publish
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
+    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID
+    - echo "$CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID"
+
+# Deploy
+
+.deploy_shared:
+  image: $DOCKER_REPO/mcmakler-deploy:latest
+  variables:
+    APPLINK: public_mcql
+  before_script:
+    - touch env.yml.j2 # TODO: this is needed only to not break entrypoint.sh, otherwise it will fail
+    - entrypoint.sh
+  script:
+    - . scripts/load-dotenv.sh # load dotenv
+    - j2 global.yml.j2 > global.yml
+    - cat global.yml
+    - j2 -f yaml kube/deployment.yaml.j2  global.yml > kube/deployment.yaml
+    - j2 -f yaml kube/service.yaml.j2  global.yml > kube/service.yaml
+    - j2 -f yaml kube/HorizontalPodAutoscaler.yaml.j2   global.yml > kube/HorizontalPodAutoscaler.yaml
+    - kubectl cluster-info
+    - kubectl apply -f kube/service.yaml
+    - kubectl apply -f kube/deployment.yaml
+    - kubectl --namespace $KUBE_NAMESPACE apply -f kube/HorizontalPodAutoscaler.yaml
+    - update-namespece.sh
+    - echo "Built and deployed successfully to $CI_ENVIRONMENT_URL!!!"
+
+deploy_review:
+  extends: .deploy_shared
+  stage: deploy
+  variables:
+    KUBE_NAMESPACE: develop
+    BUILD_ENV: develop
+    NODE_ENV: development
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: https://$APPNAME-$CI_COMMIT_REF_SLUG.mcmakler.com
+    on_stop: stop_review_app
+  only:
+    - branches
+  except:
+    - master
+    - develop
+    - staging
+
+stop_review_app:
+  stage: deploy
+  image: alpine
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  variables:
+    GIT_STRATEGY: none
+  when: manual
+  script:
+    - echo "Remove $APPNAME-$CI_COMMIT_REF_SLUG env"
+  except:
+    - develop
+    - master
+    - staging
+
+deploy develop:
+  extends: .deploy_shared
+  stage: deploy
+  environment:
+    name: development
+    url: https://$APPNAME-$CI_COMMIT_REF_SLUG.mcmakler.com
+  variables:
+    KUBE_NAMESPACE: develop
+    BUILD_ENV: develop
+    NODE_ENV: development
+  only:
+    - develop
+
+deploy staging:
+  extends: .deploy_shared
+  stage: deploy
+  environment:
+    name: staging
+    url: https://mein-staging.mcmakler.de
+  variables:
+    KUBE_NAMESPACE: staging
+    BUILD_ENV: staging
+    NODE_ENV: staging
+  only:
+    - staging
+  tags:
+    - staging
+
+deploy prod:
+  extends: .deploy_shared
+  stage: deploy
+  environment:
+    name: production
+    url: https://mein.mcmakler.de
+  variables:
+    KUBE_NAMESPACE: production
+    BUILD_ENV: production
+    NODE_ENV: production
+  only:
+    - master
+  tags:
+    - production
+
+# Post deploy
+
+.notification_shared:
+  image: $DOCKER_REPO/mcmakler-dind:latest
+  variables:
+    BUILD_ENV: production
+    GIT_STRATEGY: none
+  script:
+    - entrypoint.sh
+    - notification.py $DEPLOY_STATUS
+  tags:
+    - develop
+  only:
+    - master
+
+notification on_failure:
+  extends: .notification_shared
+  stage: post_deploy
+  when: on_failure
+  variables:
+    DEPLOY_STATUS: FAILED
+
+notification on_success:
+  extends: .notification_shared
+  stage: post_deploy
+  when: on_success
+  variables:
+    DEPLOY_STATUS: PASSED
