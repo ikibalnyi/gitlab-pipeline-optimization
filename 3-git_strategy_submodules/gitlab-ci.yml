@@ -2,7 +2,7 @@
 # Reference GIT_SUBMODULE_STRATEGY: https://docs.gitlab.com/ee/ci/yaml/#git-submodule-strategy
 
 variables:
-  GIT_STRATEGY: none | fetch | clone
+  GIT_STRATEGY: clone | fetch | none
   GIT_SUBMODULE_STRATEGY: none | normal | recursive
 
 # git strategy none
@@ -36,13 +36,13 @@ notify:
 .git_submodule_normal:
   variables:
     GIT_SUBMODULE_STRATEGY: normal
-  before_script:
+  before_script: # is equivalent to
     - git submodule sync
     - git submodule update --init
 
 .git_submodule_recursive:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-  before_script:
+  before_script: # is equivalent to
     - git submodule sync --recursive
     - git submodule update --init --recursive

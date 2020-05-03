@@ -1,9 +1,9 @@
 variables:
   APPNAME: public-mcql
-  GIT_STRATEGY: fetch
   CI_BRANCH: $CI_COMMIT_REF_SLUG
   DOCKER_DRIVER: overlay2
   DOCKER_REPO: git.mcmakler.com:4567/mcmakler-public/docker-images
+  GIT_STRATEGY: fetch
 
 stages:
   - install
@@ -16,15 +16,15 @@ stages:
 install:
   image: node:lts
   stage: install
+  script:
+    - echo NODE_VERSION=`node -v`
+    - yarn
   cache: &npm_cache
     key:
       files:
         - yarn.lock
     paths:
       - node_modules/
-  script:
-    - echo NODE_VERSION=`node -v`
-    - yarn
   only:
     changes:
       - yarn.lock
@@ -46,9 +46,16 @@ build-publish:
     - export DEBUG=1
     - yarn gen:ci
     - yarn build
-    # Docker build and publish
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
-    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID
+    # Build and push docker
+    - docker pull $CI_REGISTRY_IMAGE:$CI_BRANCH || docker pull $CI_REGISTRY_IMAGE:support-simplify-pipelines || true
+    - |
+      docker build \
+        --cache-from=$CI_REGISTRY_IMAGE:$CI_BRANCH \
+        --cache-from=$CI_REGISTRY_IMAGE:support-simplify-pipelines \
+        -t $CI_REGISTRY_IMAGE:$CI_BRANCH \
+        -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
+    - time docker push $CI_REGISTRY_IMAGE:$CI_BRANCH
+    - time docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID
     - echo "$CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID"
 
 # Deploy
@@ -58,10 +65,8 @@ build-publish:
   variables:
     APPLINK: public_mcql
   before_script:
-    - touch env.yml.j2 # TODO: this is needed only to not break entrypoint.sh, otherwise it will fail
     - entrypoint.sh
   script:
-    - . scripts/load-dotenv.sh # load dotenv
     - j2 global.yml.j2 > global.yml
     - cat global.yml
     - j2 -f yaml kube/deployment.yaml.j2  global.yml > kube/deployment.yaml
@@ -85,15 +90,13 @@ deploy_review:
     name: review/$CI_COMMIT_REF_SLUG
     url: https://$APPNAME-$CI_COMMIT_REF_SLUG.mcmakler.com
     on_stop: stop_review_app
-  only:
-    - branches
   except:
     - master
     - develop
     - staging
 
 stop_review_app:
-  stage: deploy
+  stage: post_deploy
   image: alpine
   environment:
     name: review/$CI_COMMIT_REF_SLUG

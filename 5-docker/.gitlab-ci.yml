@@ -16,9 +16,27 @@ dockerize:
     - docker build -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
     - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID
 
-# It requires buildkit and doesn't work with alpines
-# It is also quite buggy at this stage
 dockerize_cache_from:
+  stage: build
+  image: docker
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+  script:
+    # --cache-from requires image to be present locally
+    - docker pull $CI_REGISTRY_IMAGE:$CI_BRANCH || docker pull $CI_REGISTRY_IMAGE:develop || true
+    - |
+    docker build \
+    --cache-from=$CI_REGISTRY_IMAGE:$CI_BRANCH \
+    --cache-from=$CI_REGISTRY_IMAGE:develop \
+    -t $CI_REGISTRY_IMAGE:$CI_BRANCH \
+    -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
+    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH
+    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID
+
+# https://docs.docker.com/engine/reference/builder/#buildkit
+# It doesn't work with alpines
+# It is also quite buggy at this stage
+dockerize_cache_from_buildkit:
   stage: build
   image: docker
   variables:
