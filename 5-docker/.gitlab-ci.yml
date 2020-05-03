@@ -5,77 +5,33 @@
 # review apps: https://docs.gitlab.com/ee/ci/review_apps
 
 stages:
-  - build
+  - build_docker
 
-.deploy_shared:
-  image: $DOCKER_REPO/mcmakler-deploy:latest
-  dependencies: []
+dockerize:
+  stage: build
+  image: docker
   before_script:
-    - entrypoint.sh
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
-    - deploy-app --namespace $K8S_NAMESPACE $APPNAME-$CI_COMMIT_REF_SLUG
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
+    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID
 
-deploy_review:
-  extends: .deploy_shared
-  stage: deploy
+# It requires buildkit and doesn't work with alpines
+# It is also quite buggy at this stage
+dockerize_cache_from:
+  stage: build
+  image: docker
   variables:
-    K8S_NAMESPACE: develop
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG
-    url: https://$APPNAME-$CI_COMMIT_REF_SLUG.mcmakler.com
-    on_stop: stop_review_app
-    auto_stop_in: 1 week
-  only:
-    - branches
-  except:
-    - master
-    - develop
-
-deploy_develop:
-  extends: .deploy_shared
-  stage: deploy
-  environment:
-    name: development
-    url: https://$APPNAME-$CI_COMMIT_REF_SLUG.mcmakler.com
-  variables:
-    K8S_NAMESPACE: develop
-  only:
-    - develop
-
-deploy_prod:
-  extends: .deploy_shared
-  stage: deploy
-  environment:
-    name: production
-    url: https://mein.mcmakler.de
-  variables:
-    K8S_NAMESPACE: production
-  only:
-    - master
-  tags:
-    - production
-
-stop_review_app:
-  stage: deploy
-  image: $DOCKER_REPO/mcmakler-deploy:latest
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG # name of environment
-    action: stop # stop action
-  variables:
-    GIT_STRATEGY: none # don't need repo
-  when: manual # this is important as we want to trigger this job only when env is stopped
-  cache: {}
-  dependencies: []
+    DOCKER_BUILDKIT: 1
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - |
-      kubectl delete \
-        --namespace develop \ # deployment.yml#metadata.namespace
-        $APPNAME-$CI_COMMIT_REF_SLUG # deployment.yml#metadata.name
-    - |
-      kubectl delete hpa \
-        --namespace develop \  # HorizontalPodAutoscaler.yml#metadata.namespace
-        $APPNAME-$CI_COMMIT_REF_SLUG # HorizontalPodAutoscaler.yml#metadata.name
-  except: # never run on develop, staging and master
-    - develop
-    - staging
-    - master
+      docker build \
+      --build-arg BUILDKIT_INLINE_CACHE=1 \
+      --cache-from=$CI_REGISTRY_IMAGE:$CI_BRANCH \
+      --cache-from=$CI_REGISTRY_IMAGE:develop \
+      -t $CI_REGISTRY_IMAGE:$CI_BRANCH \
+      -t $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID .
+    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH
+    - docker push $CI_REGISTRY_IMAGE:$CI_BRANCH-$CI_PIPELINE_ID

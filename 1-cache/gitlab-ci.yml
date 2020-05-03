@@ -77,6 +77,7 @@ deploy:
   stage: deploy
   script: echo "Succsully deployed!"
   cache: {}
+  dependencies: {}
 
 notify:
   stage: notify
