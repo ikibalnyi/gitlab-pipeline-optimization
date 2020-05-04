@@ -9,27 +9,10 @@ stages:
 
 .deploy_shared:
   image: $DOCKER_REPO/mcmakler-deploy:latest
-  dependencies: []
   before_script:
     - entrypoint.sh
   script:
     - deploy-app --namespace $K8S_NAMESPACE $APPNAME-$CI_COMMIT_REF_SLUG
-
-deploy_review:
-  extends: .deploy_shared
-  stage: deploy
-  variables:
-    K8S_NAMESPACE: develop
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG
-    url: https://$APPNAME-$CI_COMMIT_REF_SLUG.mcmakler.com
-    on_stop: stop_review_app
-    auto_stop_in: 1 week
-  only:
-    - branches
-  except:
-    - master
-    - develop
 
 deploy_develop:
   extends: .deploy_shared
@@ -55,15 +38,34 @@ deploy_prod:
   tags:
     - production
 
-stop_review_app:
+
+# Dynamic environments
+
+deploy_review:
+  extends: .deploy_shared
   stage: deploy
+  variables:
+    K8S_NAMESPACE: develop
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: https://$APPNAME-$CI_COMMIT_REF_SLUG.mcmakler.com
+    on_stop: stop_review_app
+    auto_stop_in: 1 week
+  only:
+    - branches
+  except:
+    - master
+    - develop
+
+stop_review_app:
+  stage: post_deploy
   image: $DOCKER_REPO/mcmakler-deploy:latest
   environment:
     name: review/$CI_COMMIT_REF_SLUG # name of environment
     action: stop # stop action
+  when: manual # this is important as we want to trigger this job only when env is stopped
   variables:
     GIT_STRATEGY: none # don't need repo
-  when: manual # this is important as we want to trigger this job only when env is stopped
   cache: {}
   dependencies: []
   script:

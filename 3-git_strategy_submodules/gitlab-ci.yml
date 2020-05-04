@@ -10,12 +10,12 @@ variables:
 # if your job can operate only on artifacts
 deploy:
   image: docker
+  variables:
+    GIT_STRATEGY: none
   artifacts:
     paths:
       - dist
       - Dockerfile
-  variables:
-    GIT_STRATEGY: none
   script:
     - docker build -t portal:latest .
     - docker push -t portal:latest
