@@ -1,4 +1,4 @@
-Pipelines optiomizations
+Pipelines optimizations
 ---
 
 * [Slides](https://docs.google.com/presentation/d/1IX3fc1O09m9cAk9YszUQXwHTiWoyr3puTgcM6Em6VZY/edit?usp=sharing)
